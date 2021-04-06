@@ -1,25 +1,25 @@
 **Task 1**: Write a Dockerfile with the content below. Substitute you and your_email by your actual name and email, and add also a description line instead of your_description. Note that appart from installing R and some other dependencies, we add a copy of script.R within the container.
 
 ```
-gedit Dockerfile
+nano Dockerfile
 ```
 
 **Task 2**: Build a Docker image using your Dockerfile. You can use the following command, substituting <image> by the name that you want to give to your image:
 
 ```
-sudo docker build -t docker-dockertut .
+sudo docker build -t docker-docfinal .
 ```
 
 **Task 3**: Run a ls command using the image you just built. Which is the name of the container that this command creates?
 
 ```
-sudo docker run docker-dokertut ls
+sudo docker run docker-docfinal ls
 ```
 
 **Task 4**: Run the container interactively. What's inside? Check the path of script.R
 
 ```
-sudo docker run -it docker-dockertut
+sudo docker run -it docker-docfinal
 
 ls
 
@@ -38,18 +38,18 @@ script.R --help
 **Task 6**: Include the following statements in your Dockerfile and build again your image. This will make script.R executable and accessible from any location within the container. Then, run again the script.R --help command within a container in a non-interactive manner (i.e. without the -i -t options), naming the container as you prefer.
 
 ```
-gedit Dockerfile
+nano Dockerfile
 
-sudo docker build -t docker-dockertut .
+sudo docker build -t docker-docfinal .
 
-sudo docker run docker-dockertut script.R --help
+sudo docker run docker-docfinal script.R --help
 
 ```
 
 **Task 7**: Run a container interactively from your image. Then, use R inside the container to write a file with a single column of ~1000 numbers, with the format shown below. This will be the input file for your script. Finally, run script.R and redirect the STDOUT to a file named summary.txt. Hint: If you enable the option --verbose, script.R will also print to the STDOUT the R version installed within the container. To generate the numbers, use R interactively (just type R!), e.g. the functions rnorm and write.table. Note that the output file name given to script.R should include the .pdf suffix.
 
 ```
-sudo docker run -it docker-dockertut
+sudo docker run -it docker-docfinal
 
 R
 
@@ -63,7 +63,7 @@ Rscript scripts/script.R --input input.txt --output output.pdf --verbose TRUE > 
 **Task 8**: Repeat task 7, now mounting a volume into the folder /data_vol within the container. Substitute for the name that you prefer. Save all input and output files (input + output PDF + redirected STDOUT) for script.R in /data_vol.
 
 ```
-sudo docker run -it -v volume:/data_vol docker-dockertut
+sudo docker run -it -v volume:/data_vol docker-docfinal
 
 R
 
@@ -87,9 +87,9 @@ sudo docker run -v $PWD:$PWD -w $PWD docker-dockertut Rscript /scripts/script.R 
 ```
 sudo docker login
 
-sudo docker tag edf42188d7ca aleksk31/docker-dockertut:myrepo
+sudo docker tag a81333acfc19 aleksk31/dockerhands
 
-sudo docker push aleksk31/dockerHandsON
+sudo docker push aleksk31/dockerhands
 ```
 
 **Task 11**: Search DockerHub for images with the keyword ggsashimi, and pull the one built by guigolab. Then, try to reproduce the example depicted in this GitHub repo.
@@ -104,40 +104,57 @@ cd ggsashimi/
 sudo docker run -w $PWD -v $PWD:$PWD guigolab/ggsashimi -b examples/input_bams.tsv -c chr10:27040584-27048100
 ```
 
-
 ## Exercise 1:
 
 Build a Docker image for the seqClass.py script written during the Git hands-on. Make sure you can run the script within the corresponding Docker container and upload the image to DockerHub.
 
-Firstly, we create a file to ignore the folder ggsashimi: /home/alberto/git_HandsOn/teaching/ggsashimi
+Recursively, lets remove the cloned repo ggsashimi: /home/alberto/git_HandsOn/teaching/ggsashimi
 ```
-nano .dockerignore
+rm -r ggsashimi
 ```
 
+LEts create a Dockerfile, wit instructions 
+```
+nano Dockerfile
+```
+Then, lets provide the following setting
+
+```
+# Start from debian linux image (DockerHub)
+FROM debian:stable
+
+# Add custom label
+LABEL maintainer "you <your_email>" \
+      version "0.1" \
+      description "your_description"
+
+# Install R (after apt-get update)
+RUN apt-get update && apt-get install -y python
+
+# Make the folder '/scripts' in the container
+RUN mkdir /scripts
+
+# Copy 'seqClass.py' to the folder '/scripts' in the container
+ADD seqClass.py /scripts
+
+# Give execution permissions to script.R
+RUN chmod +x /scripts/seqClass.py
+
+# Add /scripts folder to the PATH environment variable
+ENV PATH="$PATH:/scripts"
+```
 Then, we create the image.
 ```
-sudo docker build -t docker-exercise .
+sudo docker build -t docker-seq .
 ```
 
-We run the container with a volume to store the data.
+We can also run the container with a volume to store the data.
 ```
-sudo docker run -it -v volume:/data_vol docker-exercise
-```
-
-We create the data with R.
-```
-R
-write.table(rnorm(1000), 'input.txt', col.names=F)
-q()
-```
-
-We run the script.
-```
-Rscript scripts/script.R --input input.txt --output output.pdf --verbose TRUE > summary.txt
+sudo docker run -it -v volume:/data_vol docker-seq
 ```
 
 We login in our account and upload the image to Docker-Hub.
 ```
 sudo docker login
-sudo docker tag edf42188d7ca aleksk31/docker-exercise:one
-sudo docker push aleksk31/docker-exercise
+sudo docker tag 9ccfc8f36cd0 aleksk31/docker-seqercise
+sudo docker push aleksk31/docker-seqercise
